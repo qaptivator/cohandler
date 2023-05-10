@@ -1,11 +1,20 @@
 import path from 'path'
 import fs from 'fs'
 
-export function getFilePaths(directory, deep = false) {
+/**
+ * Get every file's path inside directory.
+ * @param {string} directory Directory's path.
+ * @param {boolean} deep Should it retreive nested files?
+ * @param {string} extension File extension to filter out paths.
+ * @returns {Array} Array of paths.
+*/
+export function getFilePaths(directory, deep = false, extension) {
     let filePaths = []
     if (!directory) return []
 
-    const files = fs.readdirSync(directory, { withFileTypes: true });
+    const files = fs.readdirSync(directory, { withFileTypes: true })
+
+    if (extension) files.filter((file) => file.endsWith(extension))
 
     for (const file of files) {
         const filePath = path.join(directory, file.name);
@@ -22,9 +31,15 @@ export function getFilePaths(directory, deep = false) {
     return filePaths;
 }
 
+/**
+ * Get every folder's path inside directory.
+ * @param {string} directory Directory's path.
+ * @param {boolean} deep Should it retreive nested folders?
+ * @returns {Array} Array of paths.
+*/
 export function getFolderPaths(directory, deep = false) {
     let folderPaths = []
-    if (!directory) return folderPaths
+    if (!directory) return []
   
     const folders = fs.readdirSync(directory, { withFileTypes: true })
   
@@ -43,6 +58,11 @@ export function getFolderPaths(directory, deep = false) {
     return folderPaths;
 }
 
+/**
+ * Get file name through its path.
+ * @param {string} stringPath File's path.
+ * @returns {string} File's name.
+*/
 export function getFileName(stringPath) {
   if (!stringPath) return ''
   return stringPath.replace(/\\/g, '/').split('/').pop()
@@ -51,19 +71,23 @@ export function getFileName(stringPath) {
 /**
  * Loop through directory.
  * To use keyword "continue", replace it wih "return".
- * @param {string} directory Directory's path
- * @param {functon} callback Callback after each iteration.
- * @param {functon} after Function to get called after the loop ends.
+ * To use keyword "break", return true.
+ * @param {string} directory Directory's path.
+ * @param {Function} callback Callback after each iteration.
 */
-export async function foreachDir(directory, callback, after) {
+export async function foreachDir(directory, callback, extension) {
   if (!directory && !callback) return
 
-  const filesPaths = getFilePaths(directory, true)
+  const filesPaths = getFilePaths(directory, true, extension)
   filesPaths.sort()
 
   for (const filePath of filesPaths) {
-    await callback(filePath, getFileName(filePath))
+    const result = await callback(filePath, getFileName(filePath))
+    
+    if (result === true) {
+      break
+    } else if (result === false) {
+      continue
+    }
   }
-
-  after()
 }

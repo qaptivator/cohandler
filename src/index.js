@@ -1,6 +1,8 @@
-import { getFilePaths, getFolderPaths, getFileName, foreachDir } from './utils/fileUtils.js'
+import { Collection } from '@discordjs/collection'
 import buildCommandTree from './utils/buildCommandTree.js'
-import AsciiTable from 'ascii-table'
+import { initializeEvents } from './funcs/eventsInit.js'
+import { initializeDatabase } from './funcs/databaseInit.js'
+import { initializeValidations } from './funcs/validationsInit.js'
 
 export class Cohandler {
     /**
@@ -41,16 +43,20 @@ export class Cohandler {
         this._testGuild = testGuild
         this._includeTable = includeTable
 
-        // private vars
-        this._commands = []
-        this._validationFuncs = []
-        this._models = {}
+        // collections
+        this._client.commands = new Collection() // done
+        this._client.validations = new Collection() // done
+        this._client.buttons = new Collection()
+        this._client.selectMenus = new Collection()
+        this._client.modals = new Collection() // done
+        this._client.models = new Collection()
 
-        // ascii tables
-        this._commandStatus = new AsciiTable().setHeading('Command', 'Status')
-        this._eventStatus = new AsciiTable().setHeading('Event', 'Status')
-        this._validationStatus = new AsciiTable().setHeading('Validation', 'Status')
-        this._modelStatus = new AsciiTable().setHeading('Model', 'Status')
+        // private vars
+        //this._slashCommands = []
+        //this._userCommands = []
+        //this._messageCommands = []
+        //this._validationFuncs = []
+        //this._models = {}
 
         if (this._validationsPath && !this._commandsPath) {
             throw new Error(
@@ -69,36 +75,42 @@ export class Cohandler {
                 'Database cannot be initialized without mongoose object. Either add "mongoose" or remove "modelsPath"'
             )
         }
-
-        if (this._commandsPath) {
-            this._commandsInit()
-            this._client.once('ready', () => {
-                this._registerSlashCommands();
-                this._validationsPath && this._validationsInit();
-                this._handleCommands();
-            });
+        
+        if (this._modelsPath && this._mongoose) {
+            initializeDatabase(this._client, this._modelsPath, this._includeTable)
         }
 
         if (this._eventsPath) {
-            this._eventsInit();
+            initializeEvents(this._client, this._eventsPath, this._includeTable, this._models)
         }
 
-        if (this._modelsPath && this._mongoose) {
-            this._databaseInit();
+        if (this._commandsPath) {
+            //let commands = buildCommandTree(this._client, this._commandsPath);
+
+            this._client.once('ready', () => {
+                registerCommands({
+                    client: this._client,
+                    commands: this._commands,
+                    testGuild: this._testGuild,
+                })
+
+                if (this._validationsPath) {
+                    initializeValidations(this._client, this._validationsPath, this._includeTable)
+                }
+
+                handleCommands()
+            });
         }
 
         // every directory pakcage uses
         // commands
-        //    slash
-        //    user
-        //    message
         // events
         // validations
         // models
         // components
         //    buttons
-        //    selects
-        // modals
+        //    selectMenus
+        //    modals
 
         // [initialize chain]
         // launch sharding (only for massive servers)
@@ -113,7 +125,7 @@ export class Cohandler {
         // login
 	}
 
-    _commandsInit() {
+    /*_commandsInit() {
         let commands = buildCommandTree(this._commandsPath);
         this._commands = commands;
     }
@@ -194,7 +206,8 @@ export class Cohandler {
             }
         })
 
-        /*const modelsPaths = getFilePaths(this._modelsPath, true)
+        // old ver
+        const modelsPaths = getFilePaths(this._modelsPath, true)
         modelsPaths.sort()
 
         for (const modelsPath of modelsPaths) {
@@ -212,18 +225,30 @@ export class Cohandler {
 
         if (this._includeTable) {
             console.log(this._modelStatus.toString())
-        }*/
-    }
+        }
+    }*/
 
     get commands() {
-        return this._commands;
+        return this._client.commands;
     }
 
     get validations() {
-        return this._validationFuncs;
+        return this._client.validations;
     }
 
     get models() {
-        return this._models;
+        return this._client.models;
+    }
+
+    get modals() {
+        return this._client.modals;
+    }
+
+    get selectMenus() {
+        return this._client.selectMenus;
+    }
+
+    get buttons() {
+        return this._client.buttons;
     }
 }

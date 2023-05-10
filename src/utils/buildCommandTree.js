@@ -1,9 +1,9 @@
 import { getFilePaths } from "./fileUtils";
 
 export function buildCommandTree(directory) {
-    let commandTree = []
+    let commandTree = { slash: [], user: [], message: [] }
 
-    if (!directory) return []
+    if (!directory) return commandTree
 
     const commandFilePaths = getFilePaths(directory, true)
 
@@ -27,5 +27,5 @@ export function buildCommandTree(directory) {
         });
     }
 
-    return commandTree;
+    return commandTree
 }
