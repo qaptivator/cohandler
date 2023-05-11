@@ -76,24 +76,30 @@ export class Cohandler {
             )
         }
         
-        if (this._modelsPath && this._mongoose) {
+        if (this._modelsPath && this._mongoose !== undefined || this._mongoose !== null) {
+            console.log('init db')
             initializeDatabase(this._client, this._modelsPath, this._includeTable)
         }
 
         if (this._eventsPath) {
+            console.log('init events')
             initializeEvents(this._client, this._eventsPath, this._includeTable, this._models)
         }
 
         if (this._commandsPath) {
+            console.log('init commands')
             initializeCommands(this._client, this._commandsPath, this._includeTable)
 
             this._client.once('ready', () => {
+                console.log('register commands')
                 registerCommands(this._client, this._client.commands, this._testGuild)
 
                 if (this._validationsPath) {
+                    console.log('init validations')
                     initializeValidations(this._client, this._validationsPath, this._includeTable)
                 }
 
+                console.log('handle commands')
                 handleCommands(this._client, this._client.models)
             });
         }

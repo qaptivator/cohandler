@@ -17,7 +17,7 @@ export function initializeValidations(client, validationsPath, includeTable = fa
         validationStatus.addRow(validationName, '✅')
     }, '.js')
 
-    if (includeTable) {
+    if (includeTable && validationStatus.toJSON().rows.length > 0) {
         console.log(validationStatus.toString())
     }
 }

@@ -1,4 +1,4 @@
-import { foreachDir } from "./fileUtils"
+import { foreachDir } from "../utils/fileUtils.js"
 import AsciiTable from 'ascii-table'
 
 export function initializeCommands(client, commandPaths, includeTable = false) {
@@ -40,7 +40,7 @@ export function initializeCommands(client, commandPaths, includeTable = false) {
         commandStatus.addRow(commandName, '✅')
     }, '.js')
 
-    if (includeTable) {
+    if (includeTable && commandStatus.toJSON().rows.length > 0) {
         console.log(commandStatus.toString())
     }
 }

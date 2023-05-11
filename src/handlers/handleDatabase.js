@@ -4,7 +4,7 @@ import AsciiTable from 'ascii-table'
 export function initializeDatabase(client, modelsPath, includeTable = false) {
     let modelStatus = new AsciiTable().setHeading('Model', 'Status')
 
-    foreachDir(modelsPath, (modelPath, modelName) => {
+    foreachDir(modelsPath, (modelPath) => {
         let { model, modelName } = import(modelPath)
 
         if (!model || !modelName) {
@@ -17,7 +17,7 @@ export function initializeDatabase(client, modelsPath, includeTable = false) {
         modelStatus.addRow(modelName, '✅')
     }, '.js')
 
-    if (includeTable) {
+    if (includeTable && modelStatus.toJSON().rows.length > 0) {
         console.log(modelStatus.toString())
     }
 }
