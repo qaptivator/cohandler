@@ -3,11 +3,21 @@ import { initializeEvents } from './handlers/handleEvents.js'
 import { initializeDatabase } from './handlers/handleDatabase.js'
 import { initializeValidations } from './handlers/handleValidations.js'
 import { registerCommands, handleCommands, initializeCommands } from './handlers/handleCommands.js'
+import { joinDirPath } from './utils/dirUtils.js'
 
 export class Cohandler {
     /**
      * Initialize the Cohandler.
      *
+     * @example
+     * let handler = new Cohandler(
+     *      client, 
+     *      null, 
+     *      { 
+     *          commandsPath: dirPathBuilder("/commands", import.meta.url)
+     *      }
+     * );
+     * 
      * @param {Client} client Discord.js Client
      * @param {mongoose} mongoose Mongoose class after connection to database
      * @param {object} directories Path of directories for the handler
@@ -48,15 +58,8 @@ export class Cohandler {
         this._client.validations = new Collection() // done
         this._client.buttons = new Collection()
         this._client.selectMenus = new Collection()
-        this._client.modals = new Collection() // done
-        this._client.models = new Collection()
-
-        // private vars
-        //this._slashCommands = []
-        //this._userCommands = []
-        //this._messageCommands = []
-        //this._validationFuncs = []
-        //this._models = {}
+        this._client.modals = new Collection()
+        this._client.models = new Collection() // done
 
         if (this._validationsPath && !this._commandsPath) {
             throw new Error(
@@ -76,7 +79,7 @@ export class Cohandler {
             )
         }
         
-        if (this._modelsPath && this._mongoose !== undefined || this._mongoose !== null) {
+        if (this._modelsPath && this._mongoose) {
             console.log('init db')
             initializeDatabase(this._client, this._modelsPath, this._includeTable)
         }
@@ -127,109 +130,6 @@ export class Cohandler {
         // login
 	}
 
-    /*_commandsInit() {
-        let commands = buildCommandTree(this._commandsPath);
-        this._commands = commands;
-    }
-
-    __registerSlashCommands() {
-        registerCommands({
-            client: this._client,
-            commands: this._commands,
-            testGuild: this._testGuild,
-        })
-    }
-
-    _eventsInit() {
-        const eventPaths = getFolderPaths(this._eventsPath, false)
-
-        for (const eventPath of eventPaths) {
-            const eventName = getFileName(eventPath)
-            const eventFuncPaths = getFilePaths(eventPath, true)
-            eventFuncPaths.sort()
-
-            if (!eventName) {
-                this._eventStatus.addRow(eventName, '❌')
-                continue
-            }
-
-            this._client.on(eventName, async (...arg) => {
-                for (const eventFuncPath of eventFuncPaths) {
-                    const eventFunc = import(eventFuncPath)
-                    const cantRunEvent = await eventFunc(...arg, this._client, this)
-                    if (cantRunEvent) break
-                }
-            })
-            this._eventStatus.addRow(eventName, '✅')
-        }
-
-        if (this._includeTable) {
-            console.log(this._eventStatus.toString())
-        }
-    }
-
-    _validationsInit() {
-        const validationFilePaths = getFilePaths(this._validationsPath);
-        validationFilePaths.sort();
-    
-        for (const validationFilePath of validationFilePaths) {
-            const validationName = getFileName(validationFilePath)
-            const validationFunc = require(validationFilePath)
-
-            if (typeof validationFunc !== 'function') {
-                this._validationStatus.addRow(validationName, '❌')
-                throw new Error(`Validation file ${validationFilePath} must export a function by default.`)
-            }
-        
-            this._validationFuncs.push(validationFunc)
-            this._validationStatus.addRow(validationName, '✅')
-        }
-
-        if (this._includeTable) {
-            console.log(this._validationStatus.toString())
-        }
-    }
-
-    _databaseInit() {
-        foreachDir(this._modelsPath, async (modelPath, modelName) => {
-            let { model, modelName } = import(modelPath)
-
-            if (!model || !modelName) {
-                this._modelStatus.addRow(modelName, '❌')
-                return
-            }
-
-            this._models[modelName] = model
-
-            this._modelStatus.addRow(modelName, '✅')
-        }, () => {
-            if (this._includeTable) {
-                console.log(this._modelStatus.toString())
-            }
-        })
-
-        // old ver
-        const modelsPaths = getFilePaths(this._modelsPath, true)
-        modelsPaths.sort()
-
-        for (const modelsPath of modelsPaths) {
-            let { model, modelName } = import(modelsPath)
-
-            if (!model || !modelName) {
-                this._modelStatus.addRow(modelName, '❌')
-                continue
-            }
-
-            this._models[modelName] = model
-
-            this._modelStatus.addRow(modelName, '✅')
-        }
-
-        if (this._includeTable) {
-            console.log(this._modelStatus.toString())
-        }
-    }*/
-
     get commands() {
         return this._client.commands;
     }
@@ -253,4 +153,21 @@ export class Cohandler {
     get buttons() {
         return this._client.buttons;
     }
+}
+
+/**
+ * Builds a directory path from string.
+ * It will attach path you provided to the path of current file's directory.
+ *
+ * @example
+ * // Current directorty: /home/bot
+ * dirPathBuilder("/commands", import.meta.url);
+ * // Output path: /home/bot/commands
+ * 
+ * @param {string} dirPath Path to file or directory to be attached.
+ * @param {string} importMetaUrl Current file's directory (import.meta.url).
+ * @returns {string} New path to file or directory.
+*/
+export function dirPathBuilder(dirPath, importMetaUrl) {
+    return joinDirPath(dirPath, importMetaUrl)
 }

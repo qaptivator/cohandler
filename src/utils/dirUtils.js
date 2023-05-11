@@ -1,5 +1,5 @@
 import path from 'path';
-import {fileURLToPath} from 'url';
+import { fileURLToPath } from 'url';
 
 export function getFilename(metaUrl) {
     const __filename = fileURLToPath(metaUrl);
@@ -11,4 +11,10 @@ export function getDirname(metaUrl) {
     const __dirname = path.dirname(getFilename(metaUrl));
 
     return __dirname;
+}
+
+export function joinDirPath(dirPath, metaUrl) {
+    const __dirname = getDirname(metaUrl)
+
+    return path.join(__dirname, dirPath)
 }

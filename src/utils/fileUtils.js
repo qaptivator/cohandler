@@ -12,9 +12,9 @@ export function getFilePaths(directory, deep = false, extension) {
     let filePaths = []
     if (!directory) return []
 
-    const files = fs.readdirSync(directory, { withFileTypes: true })
+    let files = fs.readdirSync(directory, { withFileTypes: true })
 
-    if (extension) files.filter((file) => file.endsWith(extension))
+    if (extension) files.filter((file) => file.name.endsWith(extension))
 
     for (const file of files) {
         const filePath = path.join(directory, file.name);

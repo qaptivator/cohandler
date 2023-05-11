@@ -1,7 +1,7 @@
 import { getFolderPaths, getFilePaths, getFileName } from '../utils/fileUtils.js'
 import AsciiTable from 'ascii-table'
 
-export async function initializeEvents(client, eventsPath, includeTable = false, models) {
+export function initializeEvents(client, eventsPath, includeTable = false, models) {
     let eventStatus = new AsciiTable().setHeading('Event', 'Status')
 
     const eventPaths = getFolderPaths(eventsPath, false)
@@ -12,7 +12,7 @@ export async function initializeEvents(client, eventsPath, includeTable = false,
         eventFuncPaths.sort()
 
         if (!eventName) {
-            eventStatus.addRow(eventName, '❌')
+            eventStatus.addRow(eventName, '✗')
             continue
         }
 
@@ -24,7 +24,7 @@ export async function initializeEvents(client, eventsPath, includeTable = false,
             }
         })
         
-        eventStatus.addRow(eventName, '✅')
+        eventStatus.addRow(eventName, '✓') // ✅ ✓ ❌ ✗
     }
 
     if (includeTable && eventStatus.toJSON().rows.length > 0) {

@@ -1,20 +1,17 @@
 import { config } from "dotenv";
-config();
+config()
 
-import path from 'path'
-import { getDirname } from '../utils/getDirName.js'
-const __dirname = getDirname(import.meta.url)
-import { Cohandler } from "../index.js";
+import { Cohandler, dirPathBuilder } from "../index.js";
 import { Client, GatewayIntentBits } from 'discord.js';
 
 let client = new Client({ intents: [ GatewayIntentBits.Guilds ] });
 
 let handler = new Cohandler(
     client,
-    undefined, 
+    null,
     {
-       commandsPath: path.join(__dirname, '/commands'),
-       eventsPath: path.join(__dirname, '/events'),
+       commandsPath: dirPathBuilder('/commands', import.meta.url),
+       eventsPath: dirPathBuilder('/events', import.meta.url),
     },
     {
         testGuild: process.env.TEST_GUILD,

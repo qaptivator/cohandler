@@ -1,43 +1,45 @@
 import { foreachDir } from "../utils/fileUtils.js"
+import { areCommandsDifferent } from "../utils/areCommandsDifferent.js"
 import AsciiTable from 'ascii-table'
+import chalk from 'chalk'
 
-export function initializeCommands(client, commandPaths, includeTable = false) {
+export async function initializeCommands(client, commandPaths, includeTable = false) {
     let commandStatus = new AsciiTable().setHeading('Command', 'Status')
 
-    foreachDir(commandPaths, (commandPath) => {
-        let command = import(commandPath)
+    await foreachDir(commandPaths, async (commandPath) => {
+        let { default: command } = await import(commandPath)
         let commandName = command.data.name
 
         if (!command.data) {
-            commandStatus.addRow(commandName, '❌')
+            commandStatus.addRow(commandName, '✗')
             throw new Error(`File ${commandPath} must export "data".`)
         }
 
         if (!command.run) {
-            commandStatus.addRow(commandName, '❌')
+            commandStatus.addRow(commandName, '✗')
             throw new Error(`File ${commandPath} must export a "run" function.`)
         }
 
         if (!commandName) {
-            commandStatus.addRow(commandName, '❌')
+            commandStatus.addRow(commandName, '✗')
             throw new Error(`File ${commandPath} must have a command name.`)
         }
 
         if (!command.data.description) {
-            commandStatus.addRow(commandName, '❌')
+            commandStatus.addRow(commandName, '✗')
             throw new Error(`File ${commandPath} must have a command description.`)
         }
 
         try {
             command.data = command.data.toJSON();
         } catch (error) {
-            commandStatus.addRow(commandName, '❌')
+            commandStatus.addRow(commandName, '✗')
             throw new Error(`Failed to turn ${commandPath} into JSON.`)
         }
 
         client.commands.set(commandName, command)
 
-        commandStatus.addRow(commandName, '✅')
+        commandStatus.addRow(commandName, '✓')
     }, '.js')
 
     if (includeTable && commandStatus.toJSON().rows.length > 0) {
@@ -62,7 +64,8 @@ export async function getAppCommands(client, guildId) {
 export async function registerCommands(client, localCommands, guild) {
     const applicationCommands = await getAppCommands(client, guild)
 
-    for (const localCommand of localCommands) {
+    for (const localCmd of localCommands) {
+        let localCommand = localCmd[1]
         const {
             name,
             name_localizations,
@@ -71,14 +74,14 @@ export async function registerCommands(client, localCommands, guild) {
             default_member_permissions,
             dm_permission,
             options,
-        } = localCommand
+        } = localCommand.data
 
         const existingCommand = applicationCommands.cache.find((cmd) => cmd.name === name)
 
         if (existingCommand) {
             if (localCommand.deleted) {
               await applicationCommands.delete(existingCommand.id);
-              console.log(`🗑 Deleted command "${name}".`);
+              console.log(`${chalk.red('[DELETE]')} Deleted ${guild ? 'guild' : 'global'} command "${name}".`);
               continue;
             }
       
@@ -87,12 +90,12 @@ export async function registerCommands(client, localCommands, guild) {
                 description,
                 options,
               });
-      
-              console.log(`🔁 Edited command "${name}".`);
+
+              console.log(`${chalk.cyan('[EDIT]')} Edited ${guild ? 'guild' : 'global'} command "${name}".`);
             }
           } else {
             if (localCommand.deleted) {
-              console.log(`⏩ Skipping registering command "${name}" as it's set to delete.`);
+              console.log(`${chalk.blue('[SKIP]')} Skipping registering ${guild ? 'guild' : 'global'} command "${name}" as it's set to delete.`);
               continue
             }
       
@@ -106,7 +109,7 @@ export async function registerCommands(client, localCommands, guild) {
               options,
             });
       
-            console.log(`👍 Registered command "${name}".`);
+            console.log(`${chalk.green('[ADD]')} Registered ${guild ? 'guild' : 'global'} command "${name}".`);
           }
     }
 
