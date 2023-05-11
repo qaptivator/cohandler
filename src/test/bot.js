@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-config()
+config();
 
 import { Cohandler, dirPathBuilder } from "../index.js";
 import { Client, GatewayIntentBits } from 'discord.js';
@@ -12,6 +12,7 @@ let handler = new Cohandler(
     {
        commandsPath: dirPathBuilder('/commands', import.meta.url),
        eventsPath: dirPathBuilder('/events', import.meta.url),
+       validationsPath: dirPathBuilder('/validations', import.meta.url),
     },
     {
         testGuild: process.env.TEST_GUILD,

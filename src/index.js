@@ -1,7 +1,7 @@
 import { Collection } from '@discordjs/collection'
 import { initializeEvents } from './handlers/handleEvents.js'
 import { initializeDatabase } from './handlers/handleDatabase.js'
-import { initializeValidations } from './handlers/handleValidations.js'
+//import { initializeValidations } from './handlers/handleValidations.js'
 import { registerCommands, handleCommands, initializeCommands } from './handlers/handleCommands.js'
 import { joinDirPath } from './utils/dirUtils.js'
 
@@ -29,7 +29,6 @@ export class Cohandler {
         {
             commandsPath, 
             eventsPath,
-            validationsPath,
             modelsPath
         },
         {
@@ -46,7 +45,6 @@ export class Cohandler {
         // directories params
         this._commandsPath = commandsPath
         this._eventsPath = eventsPath
-        this._validationsPath = validationsPath
         this._modelsPath = modelsPath
 
         // options params
@@ -55,17 +53,10 @@ export class Cohandler {
 
         // collections
         this._client.commands = new Collection() // done
-        this._client.validations = new Collection() // done
         this._client.buttons = new Collection()
         this._client.selectMenus = new Collection()
         this._client.modals = new Collection()
         this._client.models = new Collection() // done
-
-        if (this._validationsPath && !this._commandsPath) {
-            throw new Error(
-                'Command validations are only available in the presence of a commands path. Either add "commandsPath" or remove "validationsPath"'
-            )
-        }
 
         if (this._mongoose && !this._modelsPath) {
             throw new Error(
@@ -80,29 +71,18 @@ export class Cohandler {
         }
         
         if (this._modelsPath && this._mongoose) {
-            console.log('init db')
             initializeDatabase(this._client, this._modelsPath, this._includeTable)
         }
 
         if (this._eventsPath) {
-            console.log('init events')
             initializeEvents(this._client, this._eventsPath, this._includeTable, this._models)
         }
 
         if (this._commandsPath) {
-            console.log('init commands')
             initializeCommands(this._client, this._commandsPath, this._includeTable)
 
             this._client.once('ready', () => {
-                console.log('register commands')
                 registerCommands(this._client, this._client.commands, this._testGuild)
-
-                if (this._validationsPath) {
-                    console.log('init validations')
-                    initializeValidations(this._client, this._validationsPath, this._includeTable)
-                }
-
-                console.log('handle commands')
                 handleCommands(this._client, this._client.models)
             });
         }

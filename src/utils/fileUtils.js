@@ -91,3 +91,13 @@ export async function foreachDir(directory, callback, extension) {
     }
   }
 }
+
+/**
+ * Remove file extension from stringed name of file.
+ * 
+ * @param {string} fileName Stringed name of file.
+ * @returns {string} Updated string with removed file extension.
+*/
+export function removeExtension(fileName) {
+  return fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+}

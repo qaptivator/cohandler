@@ -4,6 +4,8 @@ import AsciiTable from 'ascii-table'
 import chalk from 'chalk'
 
 export async function initializeCommands(client, commandPaths, includeTable = false) {
+    client.commands.clear()
+
     let commandStatus = new AsciiTable().setHeading('Command', 'Status')
 
     await foreachDir(commandPaths, async (commandPath) => {
@@ -115,23 +117,17 @@ export async function registerCommands(client, localCommands, guild) {
 
 }
 
-export function handleCommands(client, models) {
+export async function handleCommands(client, models) {
     client.on('interactionCreate', async (interaction) => {
         if (!interaction.isChatInputCommand()) return
+
+        //await interaction.deferReply()
 
         let command = client.commands.get(interaction.commandName)
 
         if (command) {
-            if (client.validations.length) {
-                let canRun = true
-
-                for (const validation of client.validations.values()) {
-                    const cantRunCommand = await validation(interaction, command, client, models)
-                    if (cantRunCommand) {
-                        canRun = false
-                        break
-                    }
-                }
+            if (command.validation) {
+                const canRun = await !command.validation(interaction, command, client, models)
 
                 if (canRun) {
                     await command.run(interaction, client, models)
@@ -139,6 +135,28 @@ export function handleCommands(client, models) {
             } else {
                 await command.run(interaction, client, models)
             }
+
+            /*if (client.validations.size !== 0) {
+                let canRun = true
+
+                await client.validations.every(async (validation) => {
+                    console.log(validation(interaction))
+                    const cantRunCommand = await validation(interaction, command, client, models)
+
+                    if (cantRunCommand) {
+                        canRun = false
+                        return false
+                    }
+
+                    return true
+                })
+
+                if (canRun) {
+                    await command.run(interaction, client, models)
+                }
+            } else {
+                await command.run(interaction, client, models)
+            }*/
         } else {
             interaction.reply({ content: 'Command not found.', ephemeral: true })
         }
