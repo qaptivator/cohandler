@@ -51,9 +51,6 @@ web_modules/
 # Optional npm cache directory
 .npm
 
-# .json locks
-package-lock.json
-
 # Optional eslint cache
 .eslintcache
 
