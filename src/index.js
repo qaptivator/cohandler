@@ -1,8 +1,8 @@
 import { Collection } from '@discordjs/collection'
-import buildCommandTree from './utils/buildCommandTree.js'
-import { initializeEvents } from './funcs/eventsInit.js'
-import { initializeDatabase } from './funcs/databaseInit.js'
-import { initializeValidations } from './funcs/validationsInit.js'
+import { initializeEvents } from './handlers/handleEvents.js'
+import { initializeDatabase } from './handlers/handleDatabase.js'
+import { initializeValidations } from './handlers/handleValidations.js'
+import { registerCommands, handleCommands, initializeCommands } from './handlers/handleCommands.js'
 
 export class Cohandler {
     /**
@@ -85,20 +85,16 @@ export class Cohandler {
         }
 
         if (this._commandsPath) {
-            //let commands = buildCommandTree(this._client, this._commandsPath);
+            initializeCommands(this._client, this._commandsPath, this._includeTable)
 
             this._client.once('ready', () => {
-                registerCommands({
-                    client: this._client,
-                    commands: this._commands,
-                    testGuild: this._testGuild,
-                })
+                registerCommands(this._client, this._client.commands, this._testGuild)
 
                 if (this._validationsPath) {
                     initializeValidations(this._client, this._validationsPath, this._includeTable)
                 }
 
-                handleCommands()
+                handleCommands(this._client, this._client.models)
             });
         }
 
