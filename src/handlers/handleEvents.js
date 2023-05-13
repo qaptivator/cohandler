@@ -1,8 +1,8 @@
 import { getFolderPaths, getFilePaths, getFileName } from '../utils/fileUtils.js'
-import AsciiTable from 'ascii-table'
+import { initTable, addSuccess, addFail, logTable } from '../utils/tableUtils.js'
 
 export function initializeEvents(client, eventsPath, includeTable = false, models) {
-    let eventStatus = new AsciiTable().setHeading('Event', 'Status')
+    let eventStatus = initTable('Event', 'Status')
 
     const eventPaths = getFolderPaths(eventsPath, false)
 
@@ -12,7 +12,7 @@ export function initializeEvents(client, eventsPath, includeTable = false, model
         eventFuncPaths.sort()
 
         if (!eventName) {
-            eventStatus.addRow(eventName, '✗')
+            addFail(eventStatus, eventName)
             continue
         }
 
@@ -24,10 +24,8 @@ export function initializeEvents(client, eventsPath, includeTable = false, model
             }
         })
         
-        eventStatus.addRow(eventName, '✓') // ✅ ✓ ❌ ✗
+        addSuccess(eventStatus, eventName)
     }
 
-    if (includeTable && eventStatus.toJSON().rows.length > 0) {
-        console.log(eventStatus.toString())
-    }
+    logTable(eventStatus, includeTable)
 }

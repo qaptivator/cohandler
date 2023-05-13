@@ -1,9 +1,11 @@
 import { Collection } from '@discordjs/collection'
+import { joinDirPath } from './utils/dirUtils.js'
+
 import { initializeEvents } from './handlers/handleEvents.js'
 import { initializeDatabase } from './handlers/handleDatabase.js'
-//import { initializeValidations } from './handlers/handleValidations.js'
-import { registerCommands, handleCommands, initializeCommands } from './handlers/handleCommands.js'
-import { joinDirPath } from './utils/dirUtils.js'
+import { initializeComponents } from './handlers/handleComponents.js'
+import { registerCommands, initializeCommands } from './handlers/handleCommands.js'
+import { handleInteractions } from './handlers/handleInteractions.js'
 
 export class Cohandler {
     /**
@@ -18,10 +20,10 @@ export class Cohandler {
      *      }
      * );
      * 
-     * @param {Client} client Discord.js Client
-     * @param {mongoose} mongoose Mongoose class after connection to database
-     * @param {object} directories Path of directories for the handler
-     * @param {object} options Cohandler options
+     * @param {Client} client Discord.js Client.
+     * @param {mongoose} mongoose Mongoose class after connection to database.
+     * @param {object} directories Path of directories for the handler.
+     * @param {object} options Cohandler options.
     */
     constructor(
         client,
@@ -29,11 +31,13 @@ export class Cohandler {
         {
             commandsPath, 
             eventsPath,
-            modelsPath
+            modelsPath,
+            componentsPath,
         },
         {
             testGuild,
-            includeTable
+            includeTable,
+            includeCommandStatuses
         }
     ) {
 	    if (!client) throw new Error('Property "client" is required when instantiating Cohandler.')
@@ -46,17 +50,19 @@ export class Cohandler {
         this._commandsPath = commandsPath
         this._eventsPath = eventsPath
         this._modelsPath = modelsPath
+        this._componentsPath = componentsPath
 
         // options params
         this._testGuild = testGuild
         this._includeTable = includeTable
+        this._includeCommandStatuses = includeCommandStatuses
 
         // collections
-        this._client.commands = new Collection() // done
+        this._client.commands = new Collection()
         this._client.buttons = new Collection()
         this._client.selectMenus = new Collection()
         this._client.modals = new Collection()
-        this._client.models = new Collection() // done
+        this._client.models = new Collection()
 
         if (this._mongoose && !this._modelsPath) {
             throw new Error(
@@ -69,28 +75,37 @@ export class Cohandler {
                 'Database cannot be initialized without mongoose object. Either add "mongoose" or remove "modelsPath"'
             )
         }
+
+        if (!this._commandsPath && this._componentsPath) {
+            throw new Error(
+                'Components cannot be initialized without "commandsPath" defined. Either add "commandsPath" or remove "componentsPath"'
+            )
+        }
         
         if (this._modelsPath && this._mongoose) {
             initializeDatabase(this._client, this._modelsPath, this._includeTable)
         }
 
         if (this._eventsPath) {
-            initializeEvents(this._client, this._eventsPath, this._includeTable, this._models)
+            initializeEvents(this._client, this._eventsPath, this._includeTable, this._client.models)
+        }
+
+        if (this._componentsPath) {
+            initializeComponents(this._client, this._componentsPath, this._includeTable)
         }
 
         if (this._commandsPath) {
             initializeCommands(this._client, this._commandsPath, this._includeTable)
 
             this._client.once('ready', () => {
-                registerCommands(this._client, this._client.commands, this._testGuild)
-                handleCommands(this._client, this._client.models)
-            });
+                registerCommands(this._client, this._client.commands, this._testGuild, this._includeCommandStatuses)
+                handleInteractions(this._client, this._client.models)
+            })
         }
 
         // every directory pakcage uses
         // commands
         // events
-        // validations
         // models
         // components
         //    buttons

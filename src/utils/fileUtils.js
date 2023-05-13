@@ -75,7 +75,7 @@ export function getFileName(stringPath) {
  * @param {string} directory Directory's path.
  * @param {Function} callback Callback after each iteration.
 */
-export async function foreachDir(directory, callback, extension) {
+export async function foreachDir(directory, callback, extension = '.js') {
   if (!directory && !callback) return
 
   const filesPaths = getFilePaths(directory, true, extension)

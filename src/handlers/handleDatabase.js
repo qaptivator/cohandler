@@ -1,25 +1,23 @@
 import { foreachDir } from '../utils/fileUtils.js'
-import AsciiTable from 'ascii-table'
+import { initTable, addSuccess, addFail, logTable } from '../utils/tableUtils.js'
 
 export async function initializeDatabase(client, modelsPath, includeTable = false) {
     client.models.clear()
     
-    let modelStatus = new AsciiTable().setHeading('Model', 'Status')
+    let modelStatus = initTable('Model', 'Status')
 
     await foreachDir(modelsPath, async (modelPath) => {
         let { model, modelName } = await import(modelPath)
 
         if (!model || !modelName) {
-            modelStatus.addRow(modelName, '✗')
+            addFail(modelStatus, modelName)
             return
         }
 
         client.models.set(modelName, model)
 
-        modelStatus.addRow(modelName, '✓')
-    }, '.js')
+        addSuccess(modelStatus, modelName)
+    })
 
-    if (includeTable && modelStatus.toJSON().rows.length > 0) {
-        console.log(modelStatus.toString())
-    }
+    logTable(modelStatus, includeTable)
 }
