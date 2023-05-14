@@ -1,13 +1,27 @@
 {
   "name": "cohandler.js",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "JavaScript library to handle commands, events, components and interactions in your Discord.js projects.",
+  "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qaptivator/cohandler.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/qaptivator/cohandler.js/issues"
+  },
+  "homepage": "https://github.com/qaptivator/cohandler.js",
+  "keywords": [
+    "javascript",
+    "javascript-library",
+    "discord",
+    "discordjs",
+    "handler"
+  ],
+  "author": "captivator",
   "license": "ISC",
   "type": "module",
   "dependencies": {
