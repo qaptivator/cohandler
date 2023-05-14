@@ -1,6 +1,6 @@
 {
   "name": "cohandler.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JavaScript library to handle commands, events, components and interactions in your Discord.js projects.",
   "main": "./src/index.js",
   "scripts": {
