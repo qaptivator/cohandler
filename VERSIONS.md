@@ -1,4 +1,5 @@
 # Cohandler.js versions
+List containing all of the Cohandler.js versions and releases.
 
 ## 0.1.0
 Initial release.
@@ -12,4 +13,4 @@ Features added:
 
 ## 0.1.1
 First patch.
-Remoed unnecessary npm packages.
+Removed unnecessary npm packages.
